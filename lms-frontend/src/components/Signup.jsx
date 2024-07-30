@@ -1,52 +1,76 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Form, Input, Button, Card, Typography, Select, message } from 'antd';
+import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
+
+const { Title } = Typography;
+const { Option } = Select;
 
 function Signup() {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('STUDENT');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onFinish = async (values) => {
+    setLoading(true);
     try {
-      await axios.post('http://localhost:8083/api/auth/signup', { username, email, password, role });
+      await axios.post('http://localhost:8085/api/auth/signup', values);
+      message.success('Signup successful! Please login.');
       navigate('/login');
     } catch (error) {
       console.error('Signup failed', error);
+      message.error(error.response?.data?.message || 'An error occurred during signup');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Signup</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="STUDENT">Student</option>
-          <option value="INSTRUCTOR">Instructor</option>
-        </select>
-        <button type="submit">Signup</button>
-      </form>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <Card style={{ width: 300 }}>
+        <Title level={2} style={{ textAlign: 'center' }}>Signup</Title>
+        <Form
+          name="signup"
+          initialValues={{ role: 'STUDENT' }}
+          onFinish={onFinish}
+        >
+          <Form.Item
+            name="username"
+            rules={[{ required: true, message: 'Please input your Username!' }]}
+          >
+            <Input prefix={<UserOutlined />} placeholder="Username" />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            rules={[
+              { required: true, message: 'Please input your Email!' },
+              { type: 'email', message: 'Please enter a valid email!' }
+            ]}
+          >
+            <Input prefix={<MailOutlined />} placeholder="Email" />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: 'Please input your Password!' }]}
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+          </Form.Item>
+          <Form.Item
+            name="role"
+            rules={[{ required: true, message: 'Please select a role!' }]}
+          >
+            <Select placeholder="Select a role">
+              <Option value="STUDENT">Student</Option>
+              <Option value="INSTRUCTOR">Instructor</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%' }}>
+              Sign up
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
     </div>
   );
 }

@@ -18,7 +18,7 @@ function Dashboard() {
 
       try {
         console.log('Fetching user data with token:', token);
-        const response = await axios.get('http://localhost:8083/api/users/me', {
+        const response = await axios.get('http://localhost:8085/api/users/me', {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('User data received:', response.data);

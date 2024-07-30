@@ -1,56 +1,75 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Form, Input, Button, Card, Typography, message } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
-function Login() {
-  const [login, setLogin] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+const { Title } = Typography;
+
+function Login({ setIsLoggedIn, setUserRole, setUser }) {
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+  const onFinish = async (values) => {
+    setLoading(true);
     try {
-      const response = await axios.post('http://localhost:8083/api/auth/signin', 
-        { login, password },
+      const response = await axios.post('http://localhost:8085/api/auth/signin', 
+        values,
         { headers: { 'Content-Type': 'application/json' } }
       );
-      const {token } = response.data;
+      const { token } = response.data;
       if (token) {
-        localStorage.setItem('token',token);
+        localStorage.setItem('token', token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        setIsLoggedIn(true);
+        
+        // Fetch user data
+        const userResponse = await axios.get('http://localhost:8085/api/users/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setUser(userResponse.data);
+        setUserRole(userResponse.data.roles[0]); // Assuming the API returns roles as an array
+        
         navigate('/dashboard');
       } else {
-        setError('Login failed: No access token received');
+        message.error('Login failed: No access token received');
       }
     } catch (error) {
       console.error('Login failed', error);
-      setError(error.response?.data?.message || 'An error occurred during login');
+      message.error(error.response?.data?.message || 'An error occurred during login');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      {error && <div style={{color: 'red'}}>{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username or Email"
-          value={login}
-          onChange={(e) => setLogin(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <Card style={{ width: 300 }}>
+        <Title level={2} style={{ textAlign: 'center' }}>Login</Title>
+        <Form
+          name="login"
+          initialValues={{ remember: true }}
+          onFinish={onFinish}
+        >
+          <Form.Item
+            name="login"
+            rules={[{ required: true, message: 'Please input your Username or Email!' }]}
+          >
+            <Input prefix={<UserOutlined />} placeholder="Username or Email" />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: 'Please input your Password!' }]}
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%' }}>
+              Log in
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
     </div>
   );
 }

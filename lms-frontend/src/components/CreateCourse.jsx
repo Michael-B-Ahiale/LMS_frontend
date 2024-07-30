@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { CloudinaryContext, Image } from 'cloudinary-react';
@@ -9,6 +9,7 @@ function CreateCoursePage() {
     const [description, setDescription] = useState('');
     const [content, setContent] = useState('');
     const [uploadedImageUrl, setUploadedImageUrl] = useState('');
+    const quillRef = useRef(null);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -17,13 +18,13 @@ function CreateCoursePage() {
     };
 
     const handleImageUploadSuccess = useCallback((result) => {
-        setUploadedImageUrl(result.info.secure_url);
+        const url = result.info.secure_url;
+        setUploadedImageUrl(url);
+
         // Insert the image URL into the Quill editor
-        const quill = document.querySelector('.ql-editor');
-        const range = quill.ownerDocument.getSelection().getRangeAt(0);
-        const img = document.createElement('img');
-        img.src = result.info.secure_url;
-        range.insertNode(img);
+        const editor = quillRef.current.getEditor();
+        const range = editor.getSelection();
+        editor.insertEmbed(range.index, 'image', url);
     }, []);
 
     return (
@@ -53,6 +54,7 @@ function CreateCoursePage() {
                     <div>
                         <label htmlFor="content">Content:</label>
                         <ReactQuill
+                            ref={quillRef}
                             theme="snow"
                             value={content}
                             onChange={setContent}

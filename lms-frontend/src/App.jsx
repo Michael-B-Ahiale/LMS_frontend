@@ -1,54 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import { Layout, Menu } from 'antd';
-import axios from 'axios';
+import { AuthContext } from './contexts/AuthContext';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import StudentDashboard from './components/StudentDashboard';
 import InstructorDashboard from './components/InstructorDashboard';
+import AdminDashboard from './components/AdminDashboard';
 import CreateCoursePage from "./components/CreateCourse.jsx";
 import ProfileManagementPage from "./components/ManageProfile.jsx";
 import ChatPage from "./components/ChatPage.jsx";
 
+
 const { Header, Content } = Layout;
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState(null);
-  const [user, setUser] = useState(null);
+  const { isLoggedIn, userRole, user, loading, logout } = useContext(AuthContext);
+  console.log(userRole);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-      fetchUserData(token);
-    }
-  }, []);
-
-  const fetchUserData = async (token) => {
-    try {
-      const response = await axios.get('http://localhost:8085/api/users/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUser(response.data);
-      setUserRole(response.data.roles[0]); // Assuming the API returns roles
-    } catch (error) {
-      console.error('Failed to fetch user data', error);
-      handleLogout();
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    setUserRole(null);
-    setUser(null);
-  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   const menuItems = [
     !isLoggedIn && { key: '1', label: <Link to="/login">Login</Link> },
     !isLoggedIn && { key: '2', label: <Link to="/signup">Signup</Link> },
-    isLoggedIn && { key: '3', label: 'Logout', onClick: handleLogout }
+    isLoggedIn && { key: '3', label: 'Logout', onClick: logout }
   ].filter(Boolean);
 
   return (
@@ -60,25 +37,26 @@ function App() {
         </Header>
         <Content style={{ padding: '50px' }}>
           <Routes>
-            <Route path="/login" element={!isLoggedIn ? <Login setIsLoggedIn={setIsLoggedIn} setUserRole={setUserRole} setUser={setUser} /> : <Navigate to="/dashboard" />} />
-            <Route path="/signup" element={!isLoggedIn ? <Signup /> : <Navigate to="/dashboard" />} />
-            <Route 
-              path="/dashboard" 
-              element={
-                isLoggedIn && user ? (
-                  userRole === 'STUDENT' ? (
-                    <StudentDashboard user={user} />
-                  ) : userRole === 'INSTRUCTOR' ? (
-                    <InstructorDashboard user={user} />
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                ) : (
-                  <Navigate to="/login" />
-                )
-              } 
+            <Route
+              path="/login"
+              element={!isLoggedIn ? <Login /> : <Navigate to="/dashboard" />}
             />
-            <Route path="/" element={<Navigate to="/login" />} />
+            <Route
+              path="/signup"
+              element={!isLoggedIn ? <Signup /> : <Navigate to="/dashboard" />}
+            />
+            <Route
+              path="/dashboard"
+              element={
+                isLoggedIn ? (
+                  userRole === 'STUDENT' ? <StudentDashboard user={user} />
+                  : userRole === 'INSTRUCTOR' ? <InstructorDashboard user={user} />
+                  : userRole === 'ADMIN' ? <AdminDashboard user={user} />
+                  : null
+                ) : <Navigate to="/login" />
+              }
+            />
+            <Route path="/" element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} />} />
             <Route path={"/create-course"} element={<CreateCoursePage />} ></Route>
             <Route path={"/manage-profile"} element={<ProfileManagementPage />} ></Route>
             <Route path={"/chat-page"} element={<ChatPage />} ></Route>

@@ -1,40 +1,31 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Card, Typography, message } from 'antd';
+import React, { useContext, useState } from 'react';
+import { Form, Input, Button, Card, Typography, message, Spin } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import axios from 'axios';
+import { AuthContext } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
-const API = "http://localhost:8086"
-function Login({ setIsLoggedIn, setUserRole, setUser }) {
-  const [loading, setLoading] = useState(false);
+
+function Login() {
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const response = await axios.post(API +'/api/auth/signin',
-        values,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-      const { token } = response.data;
-      if (token) {
-        localStorage.setItem('token', token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        setIsLoggedIn(true);
-        
-        // Fetch user data
-        const userResponse = await axios.get('http://localhost:8085/api/users/me', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setUser(userResponse.data);
-        setUserRole(userResponse.data.roles[0]); // Assuming the API returns roles as an array
-        
-        navigate('/dashboard');
-      } else {
-        message.error('Login failed: No access token received');
-      }
+      const response = await axios.post('http://localhost:8085/api/auth/signin', values, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const { token, ...userData } = response.data;
+      
+      // Artificial delay to make the process more visible (remove in production)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      login(token, userData);
+      message.success('Login successful!');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Login failed', error);
       message.error(error.response?.data?.message || 'An error occurred during login');
@@ -65,8 +56,8 @@ function Login({ setIsLoggedIn, setUserRole, setUser }) {
             <Input.Password prefix={<LockOutlined />} placeholder="Password" />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%' }}>
-              Log in
+            <Button type="primary" htmlType="submit" style={{ width: '100%' }} disabled={loading}>
+              {loading ? <Spin size="small" /> : 'Log in'}
             </Button>
           </Form.Item>
         </Form>

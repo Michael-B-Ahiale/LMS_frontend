@@ -10,7 +10,7 @@ const AddTopicPage = () => {
     const [courses, setCourses] = useState([]);
     const [modules, setModules] = useState([]);
     const [selectedCourse, setSelectedCourse] = useState(null);
-    const API = "http://localhost:8084"
+    const API = "http://localhost:8085"
     useEffect(() => {
         axios.get(API +'/api/courses')
             .then(response => {

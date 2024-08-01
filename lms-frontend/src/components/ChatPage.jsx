@@ -17,13 +17,13 @@ const ChatPage = () => {
 
     useEffect(() => {
         const fetchMessages = async () => {
-            const response = await axios.get('http://localhost:8084/api/messages');
+            const response = await axios.get('http://localhost:8085/api/messages');
             setMessages(response.data);
         };
 
         fetchMessages();
 
-        const socket = new SockJS('http://localhost:8084/chat');
+        const socket = new SockJS('http://localhost:8085/chat');
         const client = Stomp.over(socket);
 
         client.connect({}, () => {

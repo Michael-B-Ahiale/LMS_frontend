@@ -6,6 +6,9 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import StudentDashboard from './components/StudentDashboard';
 import InstructorDashboard from './components/InstructorDashboard';
+import CreateCoursePage from "./components/CreateCourse.jsx";
+import ProfileManagementPage from "./components/ManageProfile.jsx";
+import ChatPage from "./components/ChatPage.jsx";
 
 const { Header, Content } = Layout;
 
@@ -76,6 +79,9 @@ function App() {
               } 
             />
             <Route path="/" element={<Navigate to="/login" />} />
+            <Route path={"/create-course"} element={<CreateCoursePage />} ></Route>
+            <Route path={"/manage-profile"} element={<ProfileManagementPage />} ></Route>
+            <Route path={"/chat-page"} element={<ChatPage />} ></Route>
           </Routes>
         </Content>
       </Layout>

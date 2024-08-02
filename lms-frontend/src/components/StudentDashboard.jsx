@@ -144,7 +144,7 @@ function StudentDashboard({ user }) {
           </Menu.Item>
           {renderDiscussionsMenu()}
           <Menu.Item key="4" icon={<MessageOutlined />}>
-            <Link to="/chat-page">Chat</Link>
+            <Link to="/chat">Chat</Link>
           </Menu.Item>
           <Menu.Item key="5" icon={<LogoutOutlined />} style={{ marginTop: 'auto' }}>
             Logout

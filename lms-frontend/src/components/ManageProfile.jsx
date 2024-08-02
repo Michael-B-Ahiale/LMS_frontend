@@ -4,7 +4,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
 const { TextArea } = Input;
-const API = "http://localhost:8085";
+const API = "http://localhost:8086";
 
 const ProfileManagementPage = () => {
     const [form] = Form.useForm();
@@ -16,7 +16,7 @@ const ProfileManagementPage = () => {
         const token = localStorage.getItem('token');
         if (token) {
             setLoading(true);
-            axios.get(API + '/api/profile', {
+            axios.get(API + '/api/users/me', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -25,7 +25,7 @@ const ProfileManagementPage = () => {
                     form.setFieldsValue({
                         username: response.data.username,
                         email: response.data.email,
-                        bio: response.data.bio,
+                        // bio: response.data.bio,
                         profilePicture: response.data.profilePicture
                     });
                     setCurrentImage(response.data.profilePicture || '');
@@ -40,7 +40,11 @@ const ProfileManagementPage = () => {
 
     const onFinish = (values) => {
         const token = localStorage.getItem('token');
-        axios.put(API + '/api/profile', values, {
+        console.log(currentImage + form.getFieldValue(""))
+        axios.put(API + '/api/profile/update', {
+            ...values,
+            profilePictureUrl: currentImage
+        }, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -68,8 +72,8 @@ const ProfileManagementPage = () => {
             }
         })
             .then(response => {
-                form.setFieldsValue({ profilePicture: response.data.url });
-                setCurrentImage(response.data.url);
+                form.setFieldsValue({ profilePictureUrl: response.data.profilePictureUrl });
+                setCurrentImage(response.data.profilePictureUrl);
                 setUploading(false);
                 message.success('Profile picture uploaded successfully!');
             })
@@ -101,11 +105,11 @@ const ProfileManagementPage = () => {
                     <Input placeholder="Email" disabled={loading} />
                 </Form.Item>
                 <Form.Item
-                    name="password"
-                    label="Password"
-                    rules={[{ required: true, message: 'Please enter your password' }]}
+                    name="currentPassword"
+                    label="Current Password"
+                    rules={[{ required: true, message: 'Please enter your current password' }]}
                 >
-                    <Input.Password placeholder="Password" disabled={loading} />
+                    <Input.Password placeholder="Current Password" disabled={loading} />
                 </Form.Item>
                 <Form.Item
                     name="newPassword"
@@ -114,13 +118,22 @@ const ProfileManagementPage = () => {
                     <Input.Password placeholder="New Password" disabled={loading} />
                 </Form.Item>
                 <Form.Item
-                    name="bio"
-                    label="Bio"
+                    name="confirmNewPassword"
+                    label="Confirm New Password"
+                    rules={[{ required:false, message: 'Please confirm your new password' }, ({ getFieldValue }) => ({
+                        validator(_, value) {
+                            if (!value || getFieldValue('newPassword') === value) {
+                                return Promise.resolve();
+                            }
+                            return Promise.reject(new Error('The two passwords that you entered do not match!'));
+                        },
+                    })]}
                 >
-                    <TextArea rows={4} placeholder="Bio" disabled={loading} />
+                    <Input.Password placeholder="Confirm New Password" disabled={loading} />
                 </Form.Item>
+
                 <Form.Item
-                    name="profilePicture"
+                    name="profilePictureUrl"
                     label="Profile Picture"
                 >
                     <Upload

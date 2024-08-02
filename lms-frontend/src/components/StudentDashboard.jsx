@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Avatar, Typography, Card, Button, Row, Col, Spin, message } from 'antd';
-import {
-  UserOutlined,
-  BookOutlined,
-  MessageOutlined,
-  LogoutOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  SearchOutlined
+import { 
+  UserOutlined, 
+  BookOutlined, 
+  MessageOutlined, 
+  LogoutOutlined, 
+  MenuFoldOutlined, 
+  MenuUnfoldOutlined, 
+  SearchOutlined 
 } from '@ant-design/icons';
+import { Link } from 'react-router-dom';
 import BrowseCourses from './BrowseCoursesComponent';
 
 const { Header, Content, Footer, Sider } = Layout;
@@ -117,7 +118,6 @@ function StudentDashboard({ user }) {
   };
 
   const renderDiscussionsMenu = () => {
-    // Render list of enrolled courses in the Discussions dropdown
     const courseItems = enrolledCourses.map(course => (
       <Menu.Item key={`course-${course.id}`}>
         {course.title}
@@ -143,6 +143,9 @@ function StudentDashboard({ user }) {
             Browse Courses
           </Menu.Item>
           {renderDiscussionsMenu()}
+          <Menu.Item key="4" icon={<MessageOutlined />}>
+            <Link to="/chat-page">Chat</Link>
+          </Menu.Item>
           <Menu.Item key="5" icon={<LogoutOutlined />} style={{ marginTop: 'auto' }}>
             Logout
           </Menu.Item>
@@ -158,8 +161,10 @@ function StudentDashboard({ user }) {
               })}
             </Col>
             <Col>
-              <Avatar size={40} icon={<UserOutlined />} />
-              <span style={{ marginLeft: 8 }}>{user.username}</span>
+              <Link to="/manage-profile">
+                <Avatar size={40} icon={<UserOutlined />} />
+                <span style={{ marginLeft: 8 }}>{user.username}</span>
+              </Link>
             </Col>
           </Row>
         </Header>

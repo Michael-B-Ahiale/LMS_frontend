@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Card, message, Upload } from 'antd';
+import { Form, Input, Button, Card, message, Upload, Avatar } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
@@ -10,6 +10,7 @@ const ProfileManagementPage = () => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [currentImage, setCurrentImage] = useState('');
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -21,7 +22,13 @@ const ProfileManagementPage = () => {
                 }
             })
                 .then(response => {
-                    form.setFieldsValue(response.data);
+                    form.setFieldsValue({
+                        username: response.data.username,
+                        email: response.data.email,
+                        bio: response.data.bio,
+                        profilePicture: response.data.profilePicture
+                    });
+                    setCurrentImage(response.data.profilePicture || '');
                     setLoading(false);
                 })
                 .catch(error => {
@@ -62,6 +69,7 @@ const ProfileManagementPage = () => {
         })
             .then(response => {
                 form.setFieldsValue({ profilePicture: response.data.url });
+                setCurrentImage(response.data.url);
                 setUploading(false);
                 message.success('Profile picture uploaded successfully!');
             })
@@ -74,6 +82,9 @@ const ProfileManagementPage = () => {
 
     return (
         <Card title="Manage Your Profile">
+            {currentImage && (
+                <Avatar size={64} src={currentImage} />
+            )}
             <Form form={form} name="profile-management" onFinish={onFinish} layout="vertical">
                 <Form.Item
                     name="username"
@@ -97,6 +108,12 @@ const ProfileManagementPage = () => {
                     <Input.Password placeholder="Password" disabled={loading} />
                 </Form.Item>
                 <Form.Item
+                    name="newPassword"
+                    label="New Password"
+                >
+                    <Input.Password placeholder="New Password" disabled={loading} />
+                </Form.Item>
+                <Form.Item
                     name="bio"
                     label="Bio"
                 >
@@ -105,7 +122,6 @@ const ProfileManagementPage = () => {
                 <Form.Item
                     name="profilePicture"
                     label="Profile Picture"
-                    rules={[{ required: true, message: 'Please upload a profile picture' }]}
                 >
                     <Upload
                         name="file"

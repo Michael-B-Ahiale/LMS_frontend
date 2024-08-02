@@ -15,16 +15,20 @@ function Login() {
   const onFinish = async (values) => {
     setLoading(true);
     try {
+      console.log('Login attempt with values:', values);
       const response = await axios.post('http://localhost:8085/api/auth/signin', values, {
         headers: { 'Content-Type': 'application/json' }
       });
       const { token, ...userData } = response.data;
+      
+      console.log('Login response:', response.data);
       
       // Artificial delay to make the process more visible (remove in production)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       login(token, userData);
       message.success('Login successful!');
+      console.log('Navigating to dashboard');
       navigate('/dashboard');
     } catch (error) {
       console.error('Login failed', error);
@@ -36,34 +40,34 @@ function Login() {
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-      <Card style={{ width: 300 }}>
-        <Title level={2} style={{ textAlign: 'center' }}>Login</Title>
-        <Form
+    <Card style={{ width: 300 }}>
+      <Title level={2} style={{ textAlign: 'center' }}>Login</Title>
+      <Form
+        name="login"
+        initialValues={{ remember: true }}
+        onFinish={onFinish}
+      >
+        <Form.Item
           name="login"
-          initialValues={{ remember: true }}
-          onFinish={onFinish}
+          rules={[{ required: true, message: 'Please input your Username or Email!' }]}
         >
-          <Form.Item
-            name="login"
-            rules={[{ required: true, message: 'Please input your Username or Email!' }]}
-          >
-            <Input prefix={<UserOutlined />} placeholder="Username or Email" />
-          </Form.Item>
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Please input your Password!' }]}
-          >
-            <Input.Password prefix={<LockOutlined />} placeholder="Password" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ width: '100%' }} disabled={loading}>
-              {loading ? <Spin size="small" /> : 'Log in'}
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
-    </div>
-  );
+          <Input prefix={<UserOutlined />} placeholder="Username or Email" />
+        </Form.Item>
+        <Form.Item
+          name="password"
+          rules={[{ required: true, message: 'Please input your Password!' }]}
+        >
+          <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" style={{ width: '100%' }} disabled={loading}>
+            {loading ? <Spin size="small" /> : 'Log in'}
+          </Button>
+        </Form.Item>
+      </Form>
+    </Card>
+  </div>
+);
 }
 
 export default Login;

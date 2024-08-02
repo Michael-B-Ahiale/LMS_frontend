@@ -1,12 +1,14 @@
 import React from 'react';
-import { Form, Input, Button, Card } from 'antd';
+import { Form, Input, Button, Card, message } from 'antd';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const { TextArea } = Input;
 const API = "http://localhost:8085";
 
 const CreateCoursePage = () => {
     const [form] = Form.useForm();
+    const navigate = useNavigate(); // Initialize useNavigate
 
     const onFinish = (values) => {
         const token = localStorage.getItem('token'); // Retrieve the token from localStorage
@@ -18,10 +20,13 @@ const CreateCoursePage = () => {
         })
             .then(response => {
                 console.log('Course created successfully:', response.data);
+                message.success('Course created successfully!');
                 form.resetFields();
+                navigate(-1); // Redirect to the previous page
             })
             .catch(error => {
                 console.error('Error creating course:', error);
+                message.error('Failed to create course. Please try again.');
             });
     };
 

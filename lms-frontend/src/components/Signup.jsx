@@ -10,11 +10,11 @@ const { Option } = Select;
 function Signup() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
+  const API = "http://localhost:8086"
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      await axios.post('http://localhost:8085/api/auth/signup', values);
+      await axios.post(API + '/api/auth/signup', values);
       message.success('Signup successful! Please login.');
       navigate('/login');
     } catch (error) {

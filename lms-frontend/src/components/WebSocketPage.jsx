@@ -9,6 +9,7 @@ const WebSocketPage = () => {
     const { authToken, user } = useContext(AuthContext);
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState("");
+    const [connectionStatus, setConnectionStatus] = useState("Disconnected");
     const stompClientRef = useRef(null);
 
     useEffect(() => {
@@ -18,17 +19,28 @@ const WebSocketPage = () => {
             const socket = new SockJS(SOCKET_URL);
             stompClientRef.current = Stomp.over(socket);
 
+            const headers = {
+                Authorization: `Bearer ${authToken}`
+            };
+
             stompClientRef.current.connect(
-                { Authorization: `Bearer ${authToken}` },
+                headers,
                 (frame) => {
                     console.log('Connected to WebSocket:', frame);
+                    setConnectionStatus("Connected");
                     stompClientRef.current.subscribe('/topic/message', (msg) => {
-                        const message = JSON.parse(msg.body);
-                        setMessages(prevMessages => [...prevMessages, message]);
+                        console.log('Received message:', msg.body);
+                        try {
+                            const message = JSON.parse(msg.body);
+                            setMessages(prevMessages => [...prevMessages, message]);
+                        } catch (error) {
+                            console.error('Error parsing received message:', error);
+                        }
                     });
                 },
                 (error) => {
                     console.error('STOMP error:', error);
+                    setConnectionStatus("Error: " + error);
                 }
             );
 
@@ -36,10 +48,12 @@ const WebSocketPage = () => {
                 if (stompClientRef.current) {
                     console.log('Disconnecting WebSocket...');
                     stompClientRef.current.disconnect();
+                    setConnectionStatus("Disconnected");
                 }
             };
         } else {
             console.log('authToken not available, cannot initialize WebSocket connection.');
+            setConnectionStatus("No Auth Token");
         }
     }, [authToken]);
 
@@ -56,12 +70,11 @@ const WebSocketPage = () => {
 
         if (inputMessage && stompClientRef.current) {
             console.log('Sending message:', inputMessage);
-            const message = { 
+            const message = {
                 content: inputMessage,
                 username: user.username
             };
             stompClientRef.current.send("/app/sendMessage", {}, JSON.stringify(message));
-            setMessages(prevMessages => [...prevMessages, message]); // Add the message to the state immediately
             setInputMessage("");
         }
     };
@@ -69,6 +82,7 @@ const WebSocketPage = () => {
     return (
         <div>
             <h2>Messages</h2>
+            <p>Connection Status: {connectionStatus}</p>
             <div style={{ border: '1px solid black', height: '300px', overflowY: 'scroll', padding: '10px' }}>
                 <ul>
                     {messages.map((msg, index) => (

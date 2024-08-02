@@ -4,7 +4,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
 const { TextArea } = Input;
-const API = "http://localhost:8086";
+const API = "http://localhost:8085";
 
 const ProfileManagementPage = () => {
     const [form] = Form.useForm();

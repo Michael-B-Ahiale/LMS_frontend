@@ -3,6 +3,7 @@
     "@cloudinary/react": "^1.13.0",
     "@cloudinary/url-gen": "^1.19.0",
     "cloudinary": "^2.3.1",
+    "lucide-react": "^0.424.0",
     "react-cloudinary-upload-widget": "^2.0.0",
     "react-quill": "^2.0.0"
   }

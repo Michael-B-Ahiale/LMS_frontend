@@ -1,73 +1,218 @@
-import React, { useContext, useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Spin } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import axios from 'axios';
-import { AuthContext } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { Layout, Menu, Avatar, Typography, Card, Button, Row, Col, Spin, message } from 'antd';
+import {
+  UserOutlined,
+  BookOutlined,
+  MessageOutlined,
+  LogoutOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
+import { Link, useNavigate } from 'react-router-dom';
+import BrowseCourses from './BrowseCoursesComponent';
+import { AuthContext } from '../contexts/AuthContext'; // Make sure to import AuthContext
 
-const { Title } = Typography;
+const { Header, Content, Footer, Sider } = Layout;
+const { Title, Text } = Typography;
 
-function Login() {
-  const { login } = useContext(AuthContext);
+function StudentDashboard() {
+  const { user, logout } = useContext(AuthContext);
+  const [collapsed, setCollapsed] = useState(false);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [enrolledCoursesLoading, setEnrolledCoursesLoading] = useState(false);
+  const [enrolledCoursesError, setEnrolledCoursesError] = useState(null);
+  const [currentView, setCurrentView] = useState('myCourses');
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
 
-  const onFinish = async (values) => {
-    setLoading(true);
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    } else if (currentView === 'myCourses') {
+      fetchEnrolledCourses();
+    }
+  }, [currentView, user, navigate]);
+
+  const fetchEnrolledCourses = async () => {
+    if (!user) {
+      console.error('No user data available, cannot fetch courses');
+      return;
+    }
+
+    console.log('Fetching enrolled courses for user ID:', user.id);
     try {
-      console.log('Login attempt with values:', values);
-      const response = await axios.post('http://localhost:8086/api/auth/signin', values, {
-        headers: { 'Content-Type': 'application/json' }
+      setEnrolledCoursesLoading(true);
+      setEnrolledCoursesError(null);
+
+      const response = await fetch(`http://localhost:8085/api/student/myenrolledcourses/${user.id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
       });
-      const { token, ...userData } = response.data;
-      
-      console.log('Login response:', response.data);
-      
-      // Artificial delay to make the process more visible (remove in production)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      login(token, userData);
-      message.success('Login successful!');
-      console.log('Navigating to dashboard');
-      navigate('/dashboard');
+
+      console.log('API Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('API Response data:', data);
+
+      if (!Array.isArray(data)) {
+        console.error('API did not return an array:', data);
+        throw new Error('API did not return an array of courses');
+      }
+
+      setEnrolledCourses(data);
     } catch (error) {
-      console.error('Login failed', error);
-      message.error(error.response?.data?.message || 'An error occurred during login');
+      console.error('Error fetching enrolled courses:', error);
+      setEnrolledCoursesError(error.message);
+      message.error('Failed to load enrolled courses. Please try again later.');
     } finally {
-      setLoading(false);
+      setEnrolledCoursesLoading(false);
     }
   };
 
+  const handleEnroll = async (course) => {
+    if (!user) {
+      console.log('No user data available, cannot enroll');
+      return;
+    }
+    console.log('Enrolling in course:', course);
+    console.log('User ID:', user.id, 'Course ID:', course?.id);
+    try {
+      const response = await fetch('http://localhost:8085/api/student/enroll', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({
+          user: { id: user.id },
+          course: { id: course.id },
+        }),
+      });
+
+      console.log('Enroll API Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Enroll API Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+
+      const enrollmentData = await response.json();
+      console.log('Enrollment successful:', enrollmentData);
+
+      message.success('Successfully enrolled in the course!');
+      fetchEnrolledCourses(); // Refresh the enrolled courses list
+      setCurrentView('myCourses');
+    } catch (error) {
+      console.error('Error enrolling in course:', error);
+      message.error(`Failed to enroll in the course: ${error.message}`);
+    }
+  };
+
+  const handleLogout = () => {
+    console.log('Logging out');
+    logout();
+    navigate('/login');
+  };
+
+  const renderContent = () => {
+    if (!user) {
+      return <Spin size="large" />;
+    }
+
+    if (currentView === 'browseCourses') {
+      return (
+        <>
+          <Title level={3}>Browse Courses</Title>
+          <BrowseCourses onEnroll={handleEnroll} />
+        </>
+      );
+    }
+
+    if (enrolledCoursesLoading) {
+      return <Spin size="large" />;
+    }
+
+    if (enrolledCoursesError) {
+      return (
+        <div>
+          <Text type="danger">Error loading enrolled courses: {enrolledCoursesError}</Text>
+          <Button onClick={fetchEnrolledCourses} style={{ marginTop: '10px' }}>Retry</Button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <Title level={3}>My Courses</Title>
+        {enrolledCourses.length === 0 ? (
+          <Text>You are not enrolled in any courses yet.</Text>
+        ) : (
+          <Row gutter={[16, 16]}>
+            {enrolledCourses.map((course) => (
+              <Col xs={24} sm={12} md={8} lg={6} key={course.id}>
+                <Card
+                  title={course.title}
+                  extra={<BookOutlined />}
+                >
+                  <Text>{course.description}</Text>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
+      </>
+    );
+  };
+
+  if (!user) {
+    return <Spin size="large" />;
+  }
+
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-    <Card style={{ width: 300 }}>
-      <Title level={2} style={{ textAlign: 'center' }}>Login</Title>
-      <Form
-        name="login"
-        initialValues={{ remember: true }}
-        onFinish={onFinish}
-      >
-        <Form.Item
-          name="login"
-          rules={[{ required: true, message: 'Please input your Username or Email!' }]}
-        >
-          <Input prefix={<UserOutlined />} placeholder="Username or Email" />
-        </Form.Item>
-        <Form.Item
-          name="password"
-          rules={[{ required: true, message: 'Please input your Password!' }]}
-        >
-          <Input.Password prefix={<LockOutlined />} placeholder="Password" />
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" style={{ width: '100%' }} disabled={loading}>
-            {loading ? <Spin size="small" /> : 'Log in'}
-          </Button>
-        </Form.Item>
-      </Form>
-    </Card>
-  </div>
-);
+    <Layout style={{ minHeight: '100vh' }}>
+      <Sider trigger={null} collapsible collapsed={collapsed}>
+        <div className="logo" />
+        <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
+          <Menu.Item key="1" icon={<BookOutlined />} onClick={() => setCurrentView('myCourses')}>
+            My Courses
+          </Menu.Item>
+          <Menu.Item key="2" icon={<SearchOutlined />} onClick={() => setCurrentView('browseCourses')}>
+            Browse Courses
+          </Menu.Item>
+          <Menu.Item key="3" icon={<LogoutOutlined />} onClick={handleLogout}>
+            Logout
+          </Menu.Item>
+        </Menu>
+      </Sider>
+      <Layout>
+        <Header className="site-layout-background" style={{ padding: 0 }}>
+          {collapsed ? (
+            <MenuUnfoldOutlined className="trigger" onClick={() => setCollapsed(!collapsed)} />
+          ) : (
+            <MenuFoldOutlined className="trigger" onClick={() => setCollapsed(!collapsed)} />
+          )}
+          <div style={{ float: 'right', padding: '0 20px' }}>
+            <Avatar icon={<UserOutlined />} />
+            <Title level={3} style={{ display: 'inline', marginLeft: '10px' }}>{user?.name}</Title>
+          </div>
+        </Header>
+        <Content style={{ margin: '0 16px' }}>
+          <div style={{ padding: 24, minHeight: 360 }}>
+            {renderContent()}
+          </div>
+        </Content>
+        <Footer style={{ textAlign: 'center' }}>Ant Design ©2024 Created by Ant UED</Footer>
+      </Layout>
+    </Layout>
+  );
 }
 
-export default Login;
+export default StudentDashboard;

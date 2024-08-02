@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Avatar, Typography, Card, Button, Row, Col, Spin, message } from 'antd';
-import {
-  UserOutlined,
-  BookOutlined,
-  MessageOutlined,
-  LogoutOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  SearchOutlined,
+import { 
+  UserOutlined, 
+  BookOutlined, 
+  MessageOutlined, 
+  LogoutOutlined, 
+  MenuFoldOutlined, 
+  MenuUnfoldOutlined, 
+  SearchOutlined 
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import BrowseCourses from './BrowseCoursesComponent';
@@ -35,9 +35,9 @@ function StudentDashboard({ user }) {
   const fetchEnrolledCourses = async () => {
     try {
       setEnrolledCoursesLoading(true);
-      const response = await fetch(`http://localhost:8085/api/student/myenrolledcourses/${user.id}`, {
+      const response = await fetch('http://localhost:8085/api/enroll', {
         headers: {
-          Authorization: `Bearer ${getToken()}`,
+          'Authorization': `Bearer ${getToken()}`, 
         },
       });
       if (!response.ok) {
@@ -55,11 +55,11 @@ function StudentDashboard({ user }) {
 
   const handleEnroll = async (course) => {
     try {
-      const response = await fetch('http://localhost:8085/api/student/enroll', {
+      const response = await fetch('http://localhost:8085/api/enroll', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
+          'Authorization': `Bearer ${getToken()}`,
         },
         body: JSON.stringify({
           user: { id: user.id },
@@ -70,7 +70,6 @@ function StudentDashboard({ user }) {
         throw new Error('Failed to enroll in course');
       }
       message.success('Successfully enrolled in the course!');
-      fetchEnrolledCourses(); // Refresh the enrolled courses list
       setCurrentView('myCourses');
     } catch (error) {
       message.error('Failed to enroll in the course. Please try again later.');
@@ -99,14 +98,14 @@ function StudentDashboard({ user }) {
       <>
         <Title level={3}>My Courses</Title>
         <Row gutter={[16, 16]}>
-          {enrolledCourses.map((course) => (
+          {enrolledCourses.map(course => (
             <Col xs={24} sm={12} md={8} lg={6} key={course.id}>
               <Card
                 title={course.title}
                 extra={<BookOutlined />}
                 actions={[
                   <Button type="link">Continue</Button>,
-                  <Button type="link">View Details</Button>,
+                  <Button type="link">View Details</Button>
                 ]}
               >
                 <Text>Progress: {course.progress}%</Text>
@@ -119,8 +118,10 @@ function StudentDashboard({ user }) {
   };
 
   const renderDiscussionsMenu = () => {
-    const courseItems = enrolledCourses.map((course) => (
-      <Menu.Item key={`course-${course.id}`}>{course.title}</Menu.Item>
+    const courseItems = enrolledCourses.map(course => (
+      <Menu.Item key={`course-${course.id}`}>
+        {course.title}
+      </Menu.Item>
     ));
 
     return (
@@ -173,7 +174,9 @@ function StudentDashboard({ user }) {
             {renderContent()}
           </div>
         </Content>
-        <Footer style={{ textAlign: 'center' }}>© 2024 Your Learning Platform. All rights reserved.</Footer>
+        <Footer style={{ textAlign: 'center' }}>
+          © 2024 Your Learning Platform. All rights reserved.
+        </Footer>
       </Layout>
     </Layout>
   );

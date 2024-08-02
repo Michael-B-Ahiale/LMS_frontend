@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Layout, Menu, Avatar, Typography, Card, Button, Row, Col, Spin, message } from 'antd';
 import { 
   UserOutlined, 
@@ -9,35 +9,41 @@ import {
   MenuUnfoldOutlined, 
   SearchOutlined 
 } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import BrowseCourses from './BrowseCoursesComponent';
+import { AuthContext } from '../contexts/AuthContext';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { Title, Text } = Typography;
 
-function StudentDashboard({ user }) {
+function StudentDashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [enrolledCoursesLoading, setEnrolledCoursesLoading] = useState(true);
   const [enrolledCoursesError, setEnrolledCoursesError] = useState(null);
   const [currentView, setCurrentView] = useState('myCourses');
 
+  const { user, authToken, logout, loading: authLoading } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   useEffect(() => {
-    if (currentView === 'myCourses') {
+    if (!authLoading && user && currentView === 'myCourses') {
       fetchEnrolledCourses();
     }
-  }, [currentView]);
-
-  const getToken = () => {
-    return localStorage.getItem('token');
-  };
+  }, [currentView, user, authLoading]);
 
   const fetchEnrolledCourses = async () => {
+    if (!user || !user.id) {
+      setEnrolledCoursesError("User information is not available");
+      setEnrolledCoursesLoading(false);
+      return;
+    }
+
     try {
       setEnrolledCoursesLoading(true);
-      const response = await fetch('http://localhost:8085/api/enroll', {
+      const response = await fetch(`http://localhost:8085/api/student/myenrolledcourses/${user.id}`, {
         headers: {
-          'Authorization': `Bearer ${getToken()}`, 
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       if (!response.ok) {
@@ -54,12 +60,17 @@ function StudentDashboard({ user }) {
   };
 
   const handleEnroll = async (course) => {
+    if (!user || !user.id) {
+      message.error('User information is not available. Please log in again.');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:8085/api/enroll', {
+      const response = await fetch('http://localhost:8085/api/student/enroll', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`,
+          'Authorization': `Bearer ${authToken}`,
         },
         body: JSON.stringify({
           user: { id: user.id },
@@ -69,6 +80,8 @@ function StudentDashboard({ user }) {
       if (!response.ok) {
         throw new Error('Failed to enroll in course');
       }
+      const newEnrollment = await response.json();
+      setEnrolledCourses(prevCourses => [...prevCourses, newEnrollment]);
       message.success('Successfully enrolled in the course!');
       setCurrentView('myCourses');
     } catch (error) {
@@ -76,7 +89,20 @@ function StudentDashboard({ user }) {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const renderContent = () => {
+    if (authLoading) {
+      return <Spin size="large" />;
+    }
+
+    if (!user) {
+      return <div>Please log in to view your dashboard.</div>;
+    }
+
     if (currentView === 'browseCourses') {
       return (
         <>
@@ -101,7 +127,7 @@ function StudentDashboard({ user }) {
           {enrolledCourses.map(course => (
             <Col xs={24} sm={12} md={8} lg={6} key={course.id}>
               <Card
-                title={course.title}
+                title={course.course.title}
                 extra={<BookOutlined />}
                 actions={[
                   <Button type="link">Continue</Button>,
@@ -120,7 +146,7 @@ function StudentDashboard({ user }) {
   const renderDiscussionsMenu = () => {
     const courseItems = enrolledCourses.map(course => (
       <Menu.Item key={`course-${course.id}`}>
-        {course.title}
+        {course.course.title}
       </Menu.Item>
     ));
 
@@ -130,6 +156,14 @@ function StudentDashboard({ user }) {
       </Menu.SubMenu>
     );
   };
+
+  if (authLoading) {
+    return <Spin size="large" />;
+  }
+
+  if (!user) {
+    return <div>Please log in to view your dashboard.</div>;
+  }
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -146,7 +180,7 @@ function StudentDashboard({ user }) {
           <Menu.Item key="4" icon={<MessageOutlined />}>
             <Link to="/chat">Chat</Link>
           </Menu.Item>
-          <Menu.Item key="5" icon={<LogoutOutlined />} style={{ marginTop: 'auto' }}>
+          <Menu.Item key="5" icon={<LogoutOutlined />} onClick={handleLogout} style={{ marginTop: 'auto' }}>
             Logout
           </Menu.Item>
         </Menu>

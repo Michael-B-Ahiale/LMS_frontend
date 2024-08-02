@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Card, Button, Row, Col, Input, Modal, message, Spin } from 'antd';
 import { BookOutlined } from '@ant-design/icons';
+import { AuthContext } from '../contexts/AuthContext';
 
 const { Search } = Input;
 
@@ -12,21 +13,18 @@ function BrowseCourses({ onEnroll }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const { authToken } = useContext(AuthContext);
+
   useEffect(() => {
     fetchCourses();
   }, []);
-
-  const getToken = () => {
-    // Assume the JWT token is stored in localStorage
-    return localStorage.getItem('token');
-  };
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
       const response = await fetch('http://localhost:8085/api/courses', {
         headers: {
-          'Authorization': `Bearer ${getToken()}`, // Include the JWT token in the headers
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       if (!response.ok) {
@@ -44,7 +42,7 @@ function BrowseCourses({ onEnroll }) {
   };
 
   const handleSearch = (value) => {
-    const filtered = courses.filter(course => 
+    const filtered = courses.filter(course =>
       course.title.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredCourses(filtered);
@@ -58,12 +56,10 @@ function BrowseCourses({ onEnroll }) {
   const handleEnrollConfirm = async () => {
     if (selectedCourse) {
       try {
-        await onEnroll(selectedCourse); // Assuming onEnroll handles the enrollment
-        message.success('Successfully enrolled in the course!');
+        await onEnroll(selectedCourse);
+        setEnrollModalOpen(false);
       } catch (error) {
         message.error('Failed to enroll in the course. Please try again later.');
-      } finally {
-        setEnrollModalOpen(false);
       }
     }
   };

@@ -26,7 +26,7 @@ function InstructorDashboard({ user }) {
     { key: '1', icon: <BookOutlined />, label: 'My Courses', to: '/instructor/courses' },
     { key: '2', icon: <TeamOutlined />, label: 'Students', to: '/instructor/students' },
     { key: '3', icon: <MessageOutlined />, label: 'Discussions', to: '/instructor/discussions' },
-    { key: '4', icon: <MessageOutlined />, label: 'Chat', to: '/chat-page' }, // Added Chat menu item
+    { key: '4', icon: <MessageOutlined />, label: 'Chat', to: '/chat' }, // Added Chat menu item
     { key: '5', icon: <ProfileOutlined />, label: 'Profile', to: '/manage-profile' },
     { key: '6', icon: <LogoutOutlined />, label: 'Logout', style: { marginTop: 'auto' } }
   ];

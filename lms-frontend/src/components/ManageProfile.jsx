@@ -25,10 +25,9 @@ const ProfileManagementPage = () => {
                     form.setFieldsValue({
                         username: response.data.username,
                         email: response.data.email,
-                        // bio: response.data.bio,
-                        profilePicture: response.data.profilePicture
+                        profilePictureUrl: response.data.profilePictureUrl // Ensure this is correct
                     });
-                    setCurrentImage(response.data.profilePicture || '');
+                    setCurrentImage(response.data.profilePictureUrl || '');
                     setLoading(false);
                 })
                 .catch(error => {
@@ -40,10 +39,10 @@ const ProfileManagementPage = () => {
 
     const onFinish = (values) => {
         const token = localStorage.getItem('token');
-        console.log(currentImage + form.getFieldValue(""))
+        console.log(values)
         axios.put(API + '/api/profile/update', {
             ...values,
-            profilePictureUrl: currentImage
+            profilePictureUrl: currentImage // Ensure currentImage is used here
         }, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -72,8 +71,8 @@ const ProfileManagementPage = () => {
             }
         })
             .then(response => {
-                form.setFieldsValue({ profilePictureUrl: response.data.profilePictureUrl });
-                setCurrentImage(response.data.profilePictureUrl);
+                form.setFieldsValue({ profilePictureUrl: response.data });
+                setCurrentImage(response.data);
                 setUploading(false);
                 message.success('Profile picture uploaded successfully!');
             })
@@ -114,13 +113,14 @@ const ProfileManagementPage = () => {
                 <Form.Item
                     name="newPassword"
                     label="New Password"
+                    rules={[{ required: false, message: 'Please enter your new password' }]}
                 >
                     <Input.Password placeholder="New Password" disabled={loading} />
                 </Form.Item>
                 <Form.Item
                     name="confirmNewPassword"
                     label="Confirm New Password"
-                    rules={[{ required:false, message: 'Please confirm your new password' }, ({ getFieldValue }) => ({
+                    rules={[{ required: false, message: 'Please confirm your new password' }, ({ getFieldValue }) => ({
                         validator(_, value) {
                             if (!value || getFieldValue('newPassword') === value) {
                                 return Promise.resolve();

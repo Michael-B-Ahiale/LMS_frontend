@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, Card, message, Upload, Avatar } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const { TextArea } = Input;
 const API = "http://localhost:8085";
@@ -11,6 +12,7 @@ const ProfileManagementPage = () => {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [currentImage, setCurrentImage] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -25,7 +27,7 @@ const ProfileManagementPage = () => {
                     form.setFieldsValue({
                         username: response.data.username,
                         email: response.data.email,
-                        profilePictureUrl: response.data.profilePictureUrl // Ensure this is correct
+                        profilePictureUrl: response.data.profilePictureUrl
                     });
                     setCurrentImage(response.data.profilePictureUrl || '');
                     setLoading(false);
@@ -39,10 +41,9 @@ const ProfileManagementPage = () => {
 
     const onFinish = (values) => {
         const token = localStorage.getItem('token');
-        console.log(values)
         axios.put(API + '/api/profile/update', {
             ...values,
-            profilePictureUrl: currentImage // Ensure currentImage is used here
+            profilePictureUrl: currentImage
         }, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -50,6 +51,7 @@ const ProfileManagementPage = () => {
         })
             .then(response => {
                 message.success('Profile updated successfully!');
+                handleLogout();
             })
             .catch(error => {
                 console.error('Error updating profile:', error);
@@ -71,8 +73,8 @@ const ProfileManagementPage = () => {
             }
         })
             .then(response => {
-                form.setFieldsValue({ profilePictureUrl: response.data });
-                setCurrentImage(response.data);
+                form.setFieldsValue({ profilePictureUrl: response.data.profilePictureUrl });
+                setCurrentImage(response.data.profilePictureUrl);
                 setUploading(false);
                 message.success('Profile picture uploaded successfully!');
             })
@@ -80,6 +82,25 @@ const ProfileManagementPage = () => {
                 console.error('Error uploading profile picture:', error);
                 setUploading(false);
                 message.error('Failed to upload profile picture');
+            });
+    };
+
+    const handleLogout = () => {
+        const token = localStorage.getItem('token');
+        axios.post(API + '/api/auth/logout', {}, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+            .then(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                navigate('/login');
+                message.success('Logged out successfully!');
+            })
+            .catch(error => {
+                console.error('Error logging out:', error);
+                message.error('Failed to logout');
             });
     };
 

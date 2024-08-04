@@ -12,6 +12,8 @@ import ProfileManagementPage from "./components/ManageProfile.jsx";
 import ChatPage from "./components/ChatPage.jsx";
 import { AuthProvider } from './contexts/AuthContext';
 import WebSocketPage from './components/WebSocketPage.jsx'
+import QuizMakingPage from "./components/QuizMakingPage.jsx";
+import QuizTakingPage from "./components/QuizTakingPage.jsx";
 
 const { Header, Content } = Layout;
 
@@ -80,7 +82,12 @@ function AppContent() {
           <Route path="/manage-profile" element={isLoggedIn ? <ProfileManagementPage /> : <Navigate to="/login" replace />} />
           <Route path="/chat-page" element={isLoggedIn ? <ChatPage /> : <Navigate to="/login" replace />} />
           <Route path="/chat" element={isLoggedIn ? <WebSocketPage /> : <Navigate to="/login" replace />} />
+          <Route path="/quiz-making" element={isLoggedIn ? <QuizMakingPage /> : <Navigate to="/login" replace />} />
+          <Route path="/quiz-taking" element={isLoggedIn ? <QuizTakingPage /> : <Navigate to="/login" replace />} />
+          <Route path="/add-learning-material" element={isLoggedIn ? <QuizTakingPage /> : <Navigate to="/login" replace />} />
+
           <Route path="/" element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />} />
+
         </Routes>
       </Content>
     </Layout>

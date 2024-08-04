@@ -18,6 +18,7 @@ import TopicManagement from "./components/TopicManagement.jsx";
 import TopicPage from "./components/TopicManagement.jsx";
 import ViewCoursePage from "./components/ViewCourse.jsx";
 import Discussion from "./components/Discussions.jsx";
+import "./App.css"
 
 const { Header, Content } = Layout;
 

@@ -131,7 +131,10 @@ function StudentDashboard() {
                 extra={<BookOutlined />}
                 actions={[
                   <Button type="link">Continue</Button>,
-                  <Button type="link">View Details</Button>
+                  // <Button type="link">View Details</Button>
+                  <Button type="link" key="view">
+                    <Link to={`/course/${course.id}`}>View</Link>
+                  </Button>
                 ]}
               >
                 <Text>Progress: {course.progress}%</Text>

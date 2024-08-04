@@ -4,6 +4,8 @@ import axios from 'axios';
 import { LinkOutlined } from '@ant-design/icons';
 import 'react-quill/dist/quill.snow.css'; // Import styles for React Quill
 import ReactQuill from 'react-quill';
+import {Header} from "antd/es/layout/layout.js";
+import Title from "antd/es/skeleton/Title.js";
 
 const API = "http://localhost:8085";
 
@@ -88,6 +90,9 @@ const TopicPage = () => {
 
     return (
         <div>
+            <Header style={{ display: 'flex', alignItems: 'center' }}>
+                <Title level={3} style={{ color: 'white', margin: 0 }}>Topic Management</Title>
+            </Header>
             <Button type="primary" onClick={() => setAddModalVisible(true)}>Add Topic</Button>
             <Table
                 columns={columns}

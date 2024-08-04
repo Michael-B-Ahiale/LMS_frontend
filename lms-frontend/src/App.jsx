@@ -17,6 +17,7 @@ import QuizTakingPage from "./components/QuizTakingPage.jsx";
 import TopicManagement from "./components/TopicManagement.jsx";
 import TopicPage from "./components/TopicManagement.jsx";
 import ViewCoursePage from "./components/ViewCourse.jsx";
+import Discussion from "./components/Discussions.jsx";
 
 const { Header, Content } = Layout;
 
@@ -90,7 +91,7 @@ function AppContent() {
           <Route path="/add-learning-material" element={isLoggedIn ? <QuizTakingPage /> : <Navigate to="/login" replace />} />
           <Route path="/topic-management" element={isLoggedIn ? <TopicPage /> : <Navigate to="/login" replace />} />
           <Route path="/course/:id" element={isLoggedIn ? <ViewCoursePage /> : <Navigate to="/login" replace />} />
-
+          <Route path="/course/:id/discussions" element={isLoggedIn ? <Discussion /> : <Navigate to="/login" replace />} />
           <Route path="/" element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />} />
 
         </Routes>

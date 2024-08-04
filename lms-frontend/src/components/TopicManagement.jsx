@@ -21,7 +21,7 @@ const TopicPage = () => {
 
     const fetchTopics = async () => {
         try {
-            const response = await axios.get(`${API}/api/topics`);
+            const response = await axios.get(`${API}/api/topic`);
             setTopics(response.data);
             setLoading(false);
         } catch (error) {

@@ -136,7 +136,9 @@ function InstructorDashboard({ user }) {
                     extra={<BookOutlined />}
                     actions={[
                       <Button type="link" key="edit" onClick={() => handleEdit(course)}>Edit</Button>,
-                      <Button type="link" key="view">View</Button>
+                      <Button type="link" key="view">
+                        <Link to={`/course/${course.id}`}>View</Link>
+                      </Button>
                     ]}
                   >
                     <p>Description: {course.description}</p>

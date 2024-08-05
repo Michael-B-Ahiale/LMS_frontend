@@ -3,9 +3,9 @@ import { Layout, Menu, Avatar, Typography, Card, Button, Row, Col, Spin, message
 import { UserOutlined, PlusOutlined, BookOutlined, LogoutOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { Link, Routes, Route } from 'react-router-dom'; 
 import axios from 'axios';
-import StudentComponent from './StudentComponent'; 
-import InstructorComponent from './InstructorComponent';
-import CreateCoursePage from './CreateCourse';
+import StudentComponent from '../components/StudentComponent'; 
+import InstructorComponent from '../components/InstructorComponent';
+import CreateCoursePage from '../components/CreateCourse';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { Title, Text } = Typography;

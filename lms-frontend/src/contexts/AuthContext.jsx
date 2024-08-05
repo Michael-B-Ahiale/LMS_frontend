@@ -1,3 +1,4 @@
+// AuthContext.jsx
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
@@ -13,23 +14,17 @@ export function AuthProvider({ children }) {
   const checkAuthStatus = useCallback(async () => {
     console.log('Checking auth status...');
     const token = localStorage.getItem('token');
-    console.log('Token from localStorage:', token);
-
     if (token) {
       try {
-        console.log('Attempting to fetch user data...');
         const response = await axios.get('http://localhost:8085/api/users/me', {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        console.log('API Response:', response);
-
         if (response.data) {
           setUser(response.data);
           setIsLoggedIn(true);
           setAuthToken(token);
-          
-          // Set user role
+         
           let extractedRole = null;
           if (typeof response.data.roles === 'string') {
             const roles = response.data.roles.replace(/[\[\]"]/g, '').split(',');
@@ -38,8 +33,6 @@ export function AuthProvider({ children }) {
             extractedRole = response.data.roles[0];
           }
           setUserRole(extractedRole);
-          
-          console.log('User authenticated successfully:', { user: response.data, role: extractedRole });
         } else {
           throw new Error('No user data in response');
         }
@@ -52,7 +45,6 @@ export function AuthProvider({ children }) {
         setAuthToken(null);
       }
     } else {
-      console.log('No token found in localStorage');
       setIsLoggedIn(false);
       setUserRole(null);
       setUser(null);
@@ -66,12 +58,11 @@ export function AuthProvider({ children }) {
   }, [checkAuthStatus]);
 
   const login = useCallback((token, userData) => {
-    console.log('Login called with token:', token);
     localStorage.setItem('token', token);
     setAuthToken(token);
     setUser(userData);
     setIsLoggedIn(true);
-    
+   
     let extractedRole = null;
     if (typeof userData.roles === 'string') {
       const roles = userData.roles.replace(/[\[\]"]/g, '').split(',');
@@ -80,18 +71,14 @@ export function AuthProvider({ children }) {
       extractedRole = userData.roles[0];
     }
     setUserRole(extractedRole);
-    
-    console.log('Login completed, user state updated:', { user: userData, role: extractedRole });
   }, []);
 
   const logout = useCallback(() => {
-    console.log('Logout called');
     localStorage.removeItem('token');
     setAuthToken(null);
     setIsLoggedIn(false);
     setUserRole(null);
     setUser(null);
-    console.log('Logout completed, user state cleared');
   }, []);
 
   return (

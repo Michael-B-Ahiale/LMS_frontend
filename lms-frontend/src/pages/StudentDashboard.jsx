@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Layout, Menu, Avatar, Typography, Card, Button, Row, Col, Spin, message } from 'antd';
+import { Layout, Menu, Avatar, Typography, Card, Button, Row, Col, Spin, message, Empty } from 'antd';
 import { 
   UserOutlined, 
   BookOutlined, 
@@ -12,6 +12,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import BrowseCourses from '../components/BrowseCoursesComponent';
 import { AuthContext } from '../contexts/AuthContext';
+import axios from 'axios';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -23,14 +24,20 @@ function StudentDashboard() {
   const [enrolledCoursesError, setEnrolledCoursesError] = useState(null);
   const [currentView, setCurrentView] = useState('myCourses');
 
-  const { user, authToken, logout, loading: authLoading } = useContext(AuthContext);
+  const { user, authToken, logout, loading: authLoading, isLoggedIn } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!authLoading && user && currentView === 'myCourses') {
+    if (!authLoading && isLoggedIn && user && currentView === 'myCourses') {
       fetchEnrolledCourses();
     }
-  }, [currentView, user, authLoading]);
+  }, [currentView, user, authLoading, isLoggedIn]);
+
+  useEffect(() => {
+    if (!authLoading && !isLoggedIn) {
+      navigate('/login');
+    }
+  }, [authLoading, isLoggedIn, navigate]);
 
   const fetchEnrolledCourses = async () => {
     if (!user || !user.id) {
@@ -41,18 +48,16 @@ function StudentDashboard() {
 
     try {
       setEnrolledCoursesLoading(true);
-      const response = await fetch(`http://localhost:8085/api/student/myenrolledcourses/${user.id}`, {
+      const response = await axios.get(`http://localhost:8085/api/student/myenrolledcourses/${user.id}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
         },
       });
-      if (!response.ok) {
-        throw new Error('Failed to fetch enrolled courses');
-      }
-      const data = await response.json();
-      setEnrolledCourses(data);
+      setEnrolledCourses(response.data);
+      setEnrolledCoursesError(null);
     } catch (error) {
-      setEnrolledCoursesError(error.message);
+      console.error('Error fetching enrolled courses:', error);
+      setEnrolledCoursesError("Failed to load enrolled courses. Please try again later.");
       message.error('Failed to load enrolled courses. Please try again later.');
     } finally {
       setEnrolledCoursesLoading(false);
@@ -66,25 +71,21 @@ function StudentDashboard() {
     }
 
     try {
-      const response = await fetch('http://localhost:8085/api/student/enroll', {
-        method: 'POST',
+      const response = await axios.post('http://localhost:8085/api/student/enroll', {
+        user: { id: user.id },
+        course: { id: course.id },
+      }, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`,
         },
-        body: JSON.stringify({
-          user: { id: user.id },
-          course: { id: course.id },
-        }),
       });
-      if (!response.ok) {
-        throw new Error('Failed to enroll in course');
-      }
-      const newEnrollment = await response.json();
+      const newEnrollment = response.data;
       setEnrolledCourses(prevCourses => [...prevCourses, newEnrollment]);
       message.success('Successfully enrolled in the course!');
       setCurrentView('myCourses');
     } catch (error) {
+      console.error('Error enrolling in course:', error);
       message.error('Failed to enroll in the course. Please try again later.');
     }
   };
@@ -99,7 +100,7 @@ function StudentDashboard() {
       return <Spin size="large" />;
     }
 
-    if (!user) {
+    if (!isLoggedIn) {
       return <div>Please log in to view your dashboard.</div>;
     }
 
@@ -120,24 +121,34 @@ function StudentDashboard() {
       return <div>Error loading enrolled courses: {enrolledCoursesError}</div>;
     }
 
+    if (enrolledCourses.length === 0) {
+      return (
+        <Empty
+          description="You are not enrolled in any courses yet."
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        >
+          <Button type="primary" onClick={() => setCurrentView('browseCourses')}>Browse Courses</Button>
+        </Empty>
+      );
+    }
+
     return (
       <>
         <Title level={3}>My Courses</Title>
         <Row gutter={[16, 16]}>
-          {enrolledCourses.map(course => (
-            <Col xs={24} sm={12} md={8} lg={6} key={course.id}>
+          {enrolledCourses.map(enrollment => (
+            <Col xs={24} sm={12} md={8} lg={6} key={enrollment.id}>
               <Card
-                title={course.course.title}
+                title={enrollment.course.title}
                 extra={<BookOutlined />}
                 actions={[
                   <Button type="link">Continue</Button>,
-                  // <Button type="link">View Details</Button>
                   <Button type="link" key="view">
-                    <Link to={`/course/${course.id}`}>View</Link>
+                    <Link to={`/course/${enrollment.course.id}`}>View</Link>
                   </Button>
                 ]}
               >
-                <Text>Progress: {course.progress}%</Text>
+                <Text>Progress: {enrollment.progress}%</Text>
               </Card>
             </Col>
           ))}
@@ -165,7 +176,7 @@ function StudentDashboard() {
     return <Spin size="large" />;
   }
 
-  if (!user) {
+  if (!isLoggedIn) {
     return <div>Please log in to view your dashboard.</div>;
   }
 
@@ -201,14 +212,14 @@ function StudentDashboard() {
             <Col>
               <Link to="/manage-profile">
                 <Avatar size={40} icon={<UserOutlined />} />
-                <span style={{ marginLeft: 8 }}>{user.username}</span>
+                <span style={{ marginLeft: 8 }}>{user?.username}</span>
               </Link>
             </Col>
           </Row>
         </Header>
         <Content style={{ margin: '0 16px' }}>
           <div style={{ padding: 24, minHeight: 360 }}>
-            <Title level={2}>Welcome, {user.username}!</Title>
+            <Title level={2}>Welcome, {user?.username}!</Title>
             {renderContent()}
           </div>
         </Content>

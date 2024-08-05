@@ -149,7 +149,8 @@ function StudentDashboard() {
   const renderDiscussionsMenu = () => {
     const courseItems = enrolledCourses.map(course => (
       <Menu.Item key={`course-${course.id}`}>
-        {course.course.title}
+        {/*{course.course.title}*/}
+        <Link to={"/course/" + course.id + "/discussions"} >{course.course.title}</Link>
       </Menu.Item>
     ));
 

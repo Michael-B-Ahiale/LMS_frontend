@@ -133,14 +133,14 @@ function InstructorDashboard({ user }) {
                 <Col xs={24} sm={12} md={8} lg={6} key={course.id}>
                   <Card
                     title={course.title}
-                    extra={<BookOutlined />}
+                    extra={<Link to={"/modules/"+ course.id} ><BookOutlined /> </Link>}
                     actions={[
                       <Button type="link" key="edit" onClick={() => handleEdit(course)}>Edit</Button>,
                       <Button type="link" key="view">
                         <Link to={`/course/${course.id}`}>View</Link>
                       </Button>
                     ]}
-                  >
+                   >
                     <p>Description: {course.description}</p>
                     <p>Modules: {course.modules?.length || 0}</p>
                   </Card>

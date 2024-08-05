@@ -6,6 +6,7 @@ import 'react-quill/dist/quill.snow.css'; // Import styles for React Quill
 import ReactQuill from 'react-quill';
 import {Header} from "antd/es/layout/layout.js";
 import Title from "antd/es/skeleton/Title.js";
+import { useParams} from "react-router-dom";
 
 const API = "http://localhost:8085";
 
@@ -16,14 +17,14 @@ const TopicPage = () => {
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [currentTopic, setCurrentTopic] = useState(null);
     const [form] = Form.useForm();
-
+    const { id : moduleId} = useParams()
     useEffect(() => {
         fetchTopics();
     }, []);
 
     const fetchTopics = async () => {
         try {
-            const response = await axios.get(`${API}/api/topic`);
+            const response = await axios.get(`${API}/api/topic/module/${moduleId}`);
             setTopics(response.data);
             setLoading(false);
         } catch (error) {
@@ -33,8 +34,8 @@ const TopicPage = () => {
     };
 
     const handleAddTopic = async (values) => {
-        try {
-            await axios.post(`${API}/api/topics`, values);
+        try {const postValues = { ...values, module: { id: moduleId } }
+            await axios.post(`${API}/api/topic`, postValues);
             message.success('Topic added successfully!');
             fetchTopics();
             setAddModalVisible(false);

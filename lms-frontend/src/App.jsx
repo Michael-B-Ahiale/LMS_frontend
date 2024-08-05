@@ -2,11 +2,11 @@ import React, { useContext, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, Navigate, useNavigate } from 'react-router-dom';
 import { Layout, Menu } from 'antd';
 import { AuthContext } from './contexts/AuthContext';
-import Login from './components/Login';
-import Signup from './components/Signup';
-import StudentDashboard from './components/StudentDashboard';
-import InstructorDashboard from './components/InstructorDashboard';
-import AdminDashboard from './components/AdminDashboard';
+// import Login from './components/Login';
+// import Signup from './components/Signup';
+// import StudentDashboard from './components/StudentDashboard';
+// import InstructorDashboard from './components/InstructorDashboard';
+// import AdminDashboard from './components/AdminDashboard';
 import CreateCoursePage from "./components/CreateCourse.jsx";
 import ProfileManagementPage from "./components/ManageProfile.jsx";
 import ChatPage from "./components/ChatPage.jsx";
@@ -14,11 +14,17 @@ import { AuthProvider } from './contexts/AuthContext';
 import WebSocketPage from './components/WebSocketPage.jsx'
 import QuizMakingPage from "./components/QuizMakingPage.jsx";
 import QuizTakingPage from "./components/QuizTakingPage.jsx";
-import TopicManagement from "./components/TopicManagement.jsx";
+// import TopicManagement from "./components/TopicManagement.jsx";
 import TopicPage from "./components/TopicManagement.jsx";
 import ViewCoursePage from "./components/ViewCourse.jsx";
 import Discussion from "./components/Discussions.jsx";
 import "./App.css"
+import StudentDashboard from "./pages/StudentDashboard.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+import InstructorDashboard from "./pages/InstructorDashboard.jsx";
+import Login from "./pages/Login.jsx";
+import Signup from "./pages/Signup.jsx";
+import ModulesPage from "./components/ModulesPage.jsx";
 
 const { Header, Content } = Layout;
 
@@ -90,9 +96,10 @@ function AppContent() {
           <Route path="/quiz-making" element={isLoggedIn ? <QuizMakingPage /> : <Navigate to="/login" replace />} />
           <Route path="/quiz-taking" element={isLoggedIn ? <QuizTakingPage /> : <Navigate to="/login" replace />} />
           <Route path="/add-learning-material" element={isLoggedIn ? <QuizTakingPage /> : <Navigate to="/login" replace />} />
-          <Route path="/topic-management" element={isLoggedIn ? <TopicPage /> : <Navigate to="/login" replace />} />
+          <Route path="/topic/:id" element={isLoggedIn ? <TopicPage /> : <Navigate to="/login" replace />} />
           <Route path="/course/:id" element={isLoggedIn ? <ViewCoursePage /> : <Navigate to="/login" replace />} />
           <Route path="/course/:id/discussions" element={isLoggedIn ? <Discussion /> : <Navigate to="/login" replace />} />
+          <Route path="/modules/:id" element={isLoggedIn ? <ModulesPage /> : <Navigate to="/login" replace />} />
           <Route path="/" element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />} />
 
         </Routes>

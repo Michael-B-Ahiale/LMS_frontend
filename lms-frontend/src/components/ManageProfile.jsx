@@ -27,9 +27,9 @@ const ProfileManagementPage = () => {
                     form.setFieldsValue({
                         username: response.data.username,
                         email: response.data.email,
-                        profilePictureUrl: response.data.profilePictureUrl
+                        profilePictureUrl: response.data.profilePicture
                     });
-                    setCurrentImage(response.data.profilePictureUrl || '');
+                    setCurrentImage(response.data.profilePicture || '');
                     setLoading(false);
                 })
                 .catch(error => {
@@ -107,7 +107,7 @@ const ProfileManagementPage = () => {
     return (
         <Card title="Manage Your Profile">
             {currentImage && (
-                <Avatar size={64} src={currentImage} />
+                <Avatar size={90} src={currentImage} />
             )}
             <Form form={form} name="profile-management" onFinish={onFinish} layout="vertical">
                 <Form.Item
@@ -157,6 +157,9 @@ const ProfileManagementPage = () => {
                     name="profilePictureUrl"
                     label="Profile Picture"
                 >
+                    {currentImage && (
+                        <Avatar size={90} src={currentImage} style={{ marginBottom: 16 }} />
+                    )}
                     <Upload
                         name="file"
                         customRequest={handleUpload}

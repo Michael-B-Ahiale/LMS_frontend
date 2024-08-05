@@ -10,7 +10,7 @@ import {
   SearchOutlined 
 } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
-import BrowseCourses from './BrowseCoursesComponent';
+import BrowseCourses from '../components/BrowseCoursesComponent';
 import { AuthContext } from '../contexts/AuthContext';
 
 const { Header, Content, Footer, Sider } = Layout;
